@@ -1,13 +1,17 @@
 BINARY_NAME=dkpswitch
+BUILD_TIME=$(shell date)
+VERSION=""
 
 build:
-	GOARCH=amd64 GOOS=darwin go build -o ${BINARY_NAME}-darwin main.go
-	GOARCH=amd64 GOOS=linux go build -o ${BINARY_NAME}-linux main.go
+	GOARCH=amd64 GOOS=darwin go build -ldflags="-X 'main.Version=${VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" -o ${BINARY_NAME} main.go
+	tar -cvf "${BINARY_NAME}-${VERSION}-darwin-amd64.tar" ./${BINARY_NAME}
+	gzip ./${BINARY_NAME}-${VERSION}-darwin-amd64.tar
+	rm ${BINARY_NAME}
 
-run:
-	./${BINARY_NAME}
-
-build_and_run: build run
+	GOARCH=amd64 GOOS=linux go build -ldflags="-X 'main.Version=${VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" -o ${BINARY_NAME} main.go
+	tar -cvf "${BINARY_NAME}-${VERSION}-linux-amd64.tar" ./${BINARY_NAME}
+	gzip ./${BINARY_NAME}-${VERSION}-linux-amd64.tar
+	rm ${BINARY_NAME}
 
 dep:
 	go mod download
@@ -20,5 +24,4 @@ lint:
 
 clean:
 	go clean
-	rm ${BINARY_NAME}-darwin
-	rm ${BINARY_NAME}-linux
+	rm ${BINARY_NAME}*
