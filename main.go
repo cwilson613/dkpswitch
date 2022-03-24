@@ -25,6 +25,8 @@ type Release struct {
 	AssetsURL string
 }
 
+var Version string = ""
+var BuildTime string = ""
 var access_token string
 
 func main() {
@@ -54,6 +56,11 @@ func main() {
 				version := os.Args[2]
 				listDKPVersions(true, version)
 			}
+		case arg1 == "version":
+			fmt.Println("Version:	" + Version)
+			fmt.Println("		" + BuildTime)
+			fmt.Println("OS:		" + runtime.GOOS)
+			fmt.Println("Arch:		" + runtime.GOARCH)
 
 		default:
 			printDefaultUsage()
@@ -67,6 +74,7 @@ func main() {
 func printDefaultUsage() {
 	fmt.Printf("Usage:\n" +
 		" dkpswitch 				prints usage\n" +
+		" dkpswitch version			prints version information\n" +
 		" dkpswitch list 			list available GA DKP versions\n" +
 		" dkpswitch list all		list all DKP versions\n" +
 		" dkpswitch init <version>	switch to provided GA DKP version [e.g. 'v2.1.1']")
