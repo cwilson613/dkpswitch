@@ -108,19 +108,22 @@ func listDKPVersions(ga bool, specificVersion string) {
 			}
 		}
 	} else {
+		found := false
 		for _, tag := range dkpTags {
 			if strings.Contains(*tag.Name, specificVersion) {
+				found = true
 				setupDKP(tag)
-			} else {
-				log.Fatal("Could not find a valid GA release for " + specificVersion)
 			}
+		}
+		if !found {
+			log.Fatal("Could not find a valid GA release for " + specificVersion)
 		}
 	}
 }
 
 func readGithubAccessToken() string {
 	token := os.Getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
-	fmt.Println("GITHUB_PERSONAL_ACCESS_TOKEN: " + token)
+	// fmt.Println("GITHUB_PERSONAL_ACCESS_TOKEN: " + token)
 	if token == "" {
 		byteToken, _ := terminal.ReadPassword(int(syscall.Stdin))
 		token = string(byteToken)
@@ -287,7 +290,18 @@ func downloadRelease(release github.RepositoryRelease) (string, string) {
 	// have we already inflated this?
 	_, err = os.Stat("/tmp/dkp/" + *release.Name)
 	if err == nil {
-		skipInflation = true
+		if strings.Contains(filepath, "konvoy") {
+			_, kerr := os.Stat("/tmp/dkp/" + *release.Name + "konvoy")
+			_, perr := os.Stat("/tmp/dkp/" + *release.Name + "konvoy-preflight")
+			if kerr == nil && perr == nil { // konvoy binaries exist
+				skipInflation = true
+			}
+		} else {
+			_, derr := os.Stat("/tmp/dkp/" + *release.Name + "dkp")
+			if derr == nil { // dkp binary exists
+				skipInflation = true
+			}
+		}
 	}
 
 	//set the proper binary and link names in advance
