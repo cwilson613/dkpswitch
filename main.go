@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -97,6 +98,8 @@ func listDKPVersions(ga bool, specificVersion string) {
 	for _, tag := range dkpTags {
 		names = append(names, *tag.Name)
 	}
+
+	sort.Sort(sort.Reverse(sort.StringSlice(names)))
 
 	if specificVersion == "" {
 		prompt := promptui.Select{
