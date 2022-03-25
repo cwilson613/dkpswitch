@@ -99,6 +99,8 @@ func listDKPVersions(ga bool, specificVersion string) {
 		names = append(names, *tag.Name)
 	}
 
+	// Silly way to reverse-sort a slice of strings...
+	// but easier to read than some looping nonsense
 	sort.Sort(sort.Reverse(sort.StringSlice(names)))
 
 	if specificVersion == "" {
