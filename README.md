@@ -10,6 +10,12 @@ You can provide this token via the command line (if `dkpswitch` does not find an
 
 Alternately, for a more permanent solution, you can set the environment variable `GITHUB_PERSONAL_ACCESS_TOKEN` in your shell environment file (e.g. `~/.bashrc` or `~/.zshrc`).
 
+### Initialize in directory
+
+If you have used this tool previously to set your version of DKP/Konvoy, a `.dkp` file will have been written in the directory.
+
+`dkpswitch init` will initialize `dkp`/`konvoy` in the present directory.  If no `.dkp` file is found, you will be provided a list of versions to choose from.  If a `.dkp` file is present, `dkpswitch` will initialize the version found within that file (i.e. the version that was previously used)
+
 ### Pick version from a list
 
 `dkpswitch list` will reach out and query the GitHub API for all GA releases of DKP, and present them to the user in an interactive list.  Items may be selected by navigating with the arrow keys and pressing the `Enter` key once their desired version is highlighted.
@@ -27,9 +33,9 @@ If you do not explicitly specify `all`, only GA releases will be shown.
 
 ### Specify a specific version
 
-If you already know the desired DKP version you wish to use, simply skip the list and specify it directly with `dkpswitch init <version>`.  To use DKP v2.1.1, either:
-- `dkpswitch init 2.1.1`
-- `dkpswitch init v2.1.1`
+If you already know the desired DKP version you wish to use, simply skip the list and specify it directly with `dkpswitch <version>`.  To use DKP v2.1.1, either:
+- `dkpswitch 2.1.1`
+- `dkpswitch v2.1.1`
 
 may be provided.
 
