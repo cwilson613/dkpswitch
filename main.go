@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -51,10 +54,11 @@ func main() {
 			listDKPVersions(ga, "")
 		//bootstrap
 		case arg1 == "init":
-			if argNum == 2 {
-				log.Fatal("No DKP Version Provided")
-			} else if argNum == 3 {
-				version := os.Args[2]
+			version := checkVersion()
+			if version == "" {
+				fmt.Println("No previous DKP use detected, please select desired version: ")
+				listDKPVersions(true, "")
+			} else {
 				listDKPVersions(true, version)
 			}
 		case arg1 == "version":
@@ -62,14 +66,36 @@ func main() {
 			fmt.Println("		" + BuildTime)
 			fmt.Println("OS:		" + runtime.GOOS)
 			fmt.Println("Arch:		" + runtime.GOARCH)
-
-		default:
+		case arg1 == "help":
 			printDefaultUsage()
+		default:
+			if argNum == 1 {
+				log.Fatal("No DKP Version Provided")
+				printDefaultUsage()
+			} else if argNum == 2 {
+				version := os.Args[1]
+				listDKPVersions(true, version)
+			}
 		}
 
 	} else {
 		printDefaultUsage()
 	}
+}
+
+func checkVersion() string {
+	// Try to read local .dkp file and parse version from it
+	version := ""
+	content, err := ioutil.ReadFile(".dkp")
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return version
+		}
+		log.Fatal(err)
+	}
+
+	// Convert []byte to string and print to screen
+	return string(content)
 }
 
 func printDefaultUsage() {
@@ -78,7 +104,8 @@ func printDefaultUsage() {
 		" dkpswitch version			prints version information\n" +
 		" dkpswitch list 			list available GA DKP versions\n" +
 		" dkpswitch list all		list all DKP versions\n" +
-		" dkpswitch init <version>	switch to provided GA DKP version [e.g. 'v2.1.1']")
+		" dkpswitch <version>		switch to provided GA DKP version [e.g. 'v2.1.1']\n" +
+		" dkpswitch init			switch to DKP version previously used in this directory.")
 }
 
 func listDKPVersions(ga bool, specificVersion string) {
@@ -168,7 +195,7 @@ func githubAuth() github.RepositoriesService {
 	}
 
 	// useful for debugging auth
-	fmt.Println("Authenticated as " + *user.Login)
+	fmt.Println("Welcome " + *user.Login + "!")
 
 	return *client.Repositories
 
@@ -246,7 +273,7 @@ func setupDKP(release github.RepositoryRelease) {
 	}
 
 	checkTmpDir()
-	//checkBinaryLinks(release)
+	// checkBinaryLinks(release)
 	binPath, linkPath := downloadRelease(release)
 
 	// fmt.Println("Creating link: " + linkPath + " -> " + binPath)
@@ -258,6 +285,15 @@ func setupDKP(release github.RepositoryRelease) {
 		log.Fatal(err)
 	}
 	fmt.Println("Version set to " + *release.Name + "!")
+
+	// write the version set at ./.dkp
+	_ = os.Remove(".dkp")
+	d1 := []byte(*release.Name)
+	err = os.WriteFile(".dkp", d1, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func checkTmpDir() {
@@ -284,7 +320,7 @@ func downloadRelease(release github.RepositoryRelease) (string, string) {
 		}
 	}
 
-	fmt.Println("Download URL: " + url)
+	// fmt.Println("Download URL: " + url)
 
 	// strip out the prefix URL garbage
 	filepath := "/tmp/dkp/" + filename
@@ -327,7 +363,7 @@ func downloadRelease(release github.RepositoryRelease) (string, string) {
 	}
 
 	if skipDownload {
-		fmt.Println("Skipping Download, already have it!")
+		fmt.Println(*release.Name + " is already in /tmp/dkp - skipping download.")
 	} else {
 
 		out, err := os.Create(filepath)
@@ -369,16 +405,16 @@ func downloadRelease(release github.RepositoryRelease) (string, string) {
 	if skipInflation {
 		fmt.Println("Skipping inflation, already exists!")
 	} else {
-		fmt.Println("tar -xvf " + filepath)
-		fmt.Println("/tmp/dkp/" + *release.Name)
+		// fmt.Println("tar -xvf " + filepath)
+		// fmt.Println("/tmp/dkp/" + *release.Name)
 		cmd := exec.Command("tar", "-xvf", filepath)
 		cmd.Dir = "/tmp/dkp/" + *release.Name
-		stdout, err := cmd.Output()
+		_, err := cmd.Output()
 
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(stdout)
+		// fmt.Println(stdout)
 
 		if strings.Contains(filepath, "konvoy") {
 			fmt.Println("Extra konvoy steps")
