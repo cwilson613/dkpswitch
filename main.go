@@ -63,7 +63,7 @@ func main() {
 			}
 		case arg1 == "version":
 			fmt.Println("Version:	" + Version)
-			fmt.Println("		" + BuildTime)
+			fmt.Println("Built	" + BuildTime)
 			fmt.Println("OS:		" + runtime.GOOS)
 			fmt.Println("Arch:		" + runtime.GOARCH)
 		case arg1 == "help":
